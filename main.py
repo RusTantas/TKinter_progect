@@ -79,5 +79,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-drawing_app.py
-drawing_app.py. На экране.
