@@ -30,7 +30,10 @@ class DrawingApp:
         # Инициализация переменных для рисования
         self.last_x, self.last_y = None, None
         self.pen_color = 'black'
+        self.previous_color = 'black'  # Для сохранения цвета при использовании ластика
         self.brush_size = 1
+        self.eraser_size = 1
+        self.is_eraser_active = False
 
         # Привязка событий мыши
         self.canvas.bind('<B1-Motion>', self.paint)
@@ -53,12 +56,36 @@ class DrawingApp:
         save_button = tk.Button(control_frame, text="Сохранить", command=self.save_image)
         save_button.pack(side=tk.LEFT)
 
+        # Кнопка ластика
+        eraser_button = tk.Button(control_frame, text="Ластик", command=self.toggle_eraser)
+        eraser_button.pack(side=tk.LEFT)
+
+        # Фрейм для размера кисти
+        brush_frame = tk.Frame(control_frame)
+        brush_frame.pack(side=tk.LEFT, padx=5)
+
+        brush_label = tk.Label(brush_frame, text="Размер кисти:")
+        brush_label.pack()
+
         # Выпадающий список для выбора размера кисти
         self.brush_sizes = [1, 2, 5, 10]
         self.brush_size_var = StringVar(self.root)
         self.brush_size_var.set(self.brush_sizes[0])  # Установка начального значения
-        brush_size_menu = tk.OptionMenu(control_frame, self.brush_size_var, *self.brush_sizes, command=self.update_brush_size)
-        brush_size_menu.pack(side=tk.LEFT)
+        brush_size_menu = tk.OptionMenu(brush_frame, self.brush_size_var, *self.brush_sizes, command=self.update_brush_size)
+        brush_size_menu.pack()
+
+        # Фрейм для размера ластика
+        eraser_frame = tk.Frame(control_frame)
+        eraser_frame.pack(side=tk.LEFT, padx=5)
+
+        eraser_label = tk.Label(eraser_frame, text="Размер ластика:")
+        eraser_label.pack()
+
+        # Выпадающий список для выбора размера ластика
+        self.eraser_size_var = StringVar(self.root)
+        self.eraser_size_var.set(self.brush_sizes[0])  # Установка начального значения
+        eraser_size_menu = tk.OptionMenu(eraser_frame, self.eraser_size_var, *self.brush_sizes, command=self.update_eraser_size)
+        eraser_size_menu.pack()
 
     def paint(self, event):
         """
@@ -68,11 +95,12 @@ class DrawingApp:
             event (tk.Event): Событие движения мыши.
         """
         if self.last_x and self.last_y:
+            current_size = self.eraser_size if self.is_eraser_active else self.brush_size
             self.canvas.create_line(self.last_x, self.last_y, event.x, event.y,
-                                    width=self.brush_size, fill=self.pen_color,
+                                    width=current_size, fill=self.pen_color,
                                     capstyle=tk.ROUND, smooth=tk.TRUE)
             self.draw.line([self.last_x, self.last_y, event.x, event.y], fill=self.pen_color,
-                           width=self.brush_size)
+                           width=current_size)
 
         self.last_x = event.x
         self.last_y = event.y
@@ -94,7 +122,11 @@ class DrawingApp:
 
     def choose_color(self):
         """Открывает диалоговое окно выбора цвета."""
-        self.pen_color = colorchooser.askcolor(color=self.pen_color)[1]
+        color = colorchooser.askcolor(color=self.pen_color)[1]
+        if color:
+            self.pen_color = color
+            self.previous_color = color
+            self.is_eraser_active = False
 
     def save_image(self):
         """Сохраняет текущее изображение в файл."""
@@ -113,6 +145,25 @@ class DrawingApp:
             size (str): Новый размер кисти.
         """
         self.brush_size = int(size)
+
+    def update_eraser_size(self, size):
+        """
+        Обновляет размер ластика.
+
+        Args:
+            size (str): Новый размер ластика.
+        """
+        self.eraser_size = int(size)
+
+    def toggle_eraser(self):
+        """Переключает режим ластика."""
+        if self.is_eraser_active:
+            self.pen_color = self.previous_color
+            self.is_eraser_active = False
+        else:
+            self.previous_color = self.pen_color
+            self.pen_color = "white"
+            self.is_eraser_active = True
 
 def main():
     """Основная функция для запуска приложения."""
