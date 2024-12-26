@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import colorchooser, filedialog, messagebox, StringVar
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageTk
 
 class DrawingApp:
     """
@@ -34,10 +34,16 @@ class DrawingApp:
         self.brush_size = 1
         self.eraser_size = 1
         self.is_eraser_active = False
+        self.is_pipette_active = False
 
         # Привязка событий мыши
         self.canvas.bind('<B1-Motion>', self.paint)
         self.canvas.bind('<ButtonRelease-1>', self.reset)
+        self.canvas.bind('<Button-3>', self.pick_color)  # Привязка правой кнопки мыши к пипетке
+        self.canvas.bind('<Button-1>', self.on_canvas_click)
+
+        # Обновление холста
+        self.update_canvas()
 
     def setup_ui(self):
         """Настраивает пользовательский интерфейс."""
@@ -59,6 +65,10 @@ class DrawingApp:
         # Кнопка ластика
         eraser_button = tk.Button(control_frame, text="Ластик", command=self.toggle_eraser)
         eraser_button.pack(side=tk.LEFT)
+
+        # Кнопка пипетки
+        pipette_button = tk.Button(control_frame, text="Пипетка", command=self.toggle_pipette)
+        pipette_button.pack(side=tk.LEFT)
 
         # Фрейм для размера кисти
         brush_frame = tk.Frame(control_frame)
@@ -94,6 +104,9 @@ class DrawingApp:
         Args:
             event (tk.Event): Событие движения мыши.
         """
+        if self.is_pipette_active:
+            return
+
         if self.last_x and self.last_y:
             current_size = self.eraser_size if self.is_eraser_active else self.brush_size
             self.canvas.create_line(self.last_x, self.last_y, event.x, event.y,
@@ -104,6 +117,7 @@ class DrawingApp:
 
         self.last_x = event.x
         self.last_y = event.y
+        self.update_canvas()
 
     def reset(self, event):
         """
@@ -119,6 +133,7 @@ class DrawingApp:
         self.canvas.delete("all")
         self.image = Image.new("RGB", (600, 400), "white")
         self.draw = ImageDraw.Draw(self.image)
+        self.update_canvas()
 
     def choose_color(self):
         """Открывает диалоговое окно выбора цвета."""
@@ -127,6 +142,7 @@ class DrawingApp:
             self.pen_color = color
             self.previous_color = color
             self.is_eraser_active = False
+            self.is_pipette_active = False
 
     def save_image(self):
         """Сохраняет текущее изображение в файл."""
@@ -157,6 +173,7 @@ class DrawingApp:
 
     def toggle_eraser(self):
         """Переключает режим ластика."""
+        self.is_pipette_active = False
         if self.is_eraser_active:
             self.pen_color = self.previous_color
             self.is_eraser_active = False
@@ -164,6 +181,41 @@ class DrawingApp:
             self.previous_color = self.pen_color
             self.pen_color = "white"
             self.is_eraser_active = True
+
+    def toggle_pipette(self):
+        """Переключает режим пипетки."""
+        self.is_pipette_active = not self.is_pipette_active
+        self.is_eraser_active = False
+
+    def pick_color(self, event):
+        """
+        Выбирает цвет с холста (инструмент пипетка).
+
+        Args:
+            event (tk.Event): Событие нажатия кнопки мыши.
+        """
+        x = event.x
+        y = event.y
+        color = self.image.getpixel((x, y))
+        self.pen_color = f'#{color[0]:02x}{color[1]:02x}{color[2]:02x}'
+        self.previous_color = self.pen_color
+        self.is_eraser_active = False
+        self.is_pipette_active = False
+
+    def on_canvas_click(self, event):
+        """
+        Обрабатывает клик на холсте.
+
+        Args:
+            event (tk.Event): Событие клика мыши.
+        """
+        if self.is_pipette_active:
+            self.pick_color(event)
+
+    def update_canvas(self):
+        """Обновляет отображение холста."""
+        self.tk_image = ImageTk.PhotoImage(self.image)
+        self.canvas.create_image(0, 0, anchor="nw", image=self.tk_image)
 
 def main():
     """Основная функция для запуска приложения."""
