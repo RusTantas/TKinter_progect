@@ -77,8 +77,8 @@ class DrawingApp:
         color_button = tk.Button(control_frame, image=self.icon_palette, text="Палитра", command=self.choose_color)
         color_button.pack(side=tk.LEFT)
 
-        # fon_button = tk.Button(control_frame, image=self.icon_fon, text="Фон", command=self.choose_fon)
-        # fon_button.pack(side=tk.LEFT)
+        fon_button = tk.Button(control_frame, image=self.icon_fon, text="Фон", command=self.choose_fon)
+        fon_button.pack(side=tk.LEFT)
 
         pen_button = tk.Button(control_frame, image=self.icon_brash, text="Кисть", command=self.pen_image)
         pen_button.pack(side=tk.LEFT)
