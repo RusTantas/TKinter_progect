@@ -86,8 +86,8 @@ class DrawingApp:
         eraser_button = tk.Button(control_frame, image=self.icon_eraser, text="Ластик", command=self.eraser_image)
         eraser_button.pack(side=tk.LEFT)
 
-        # text_button = tk.Button(control_frame, image=self.icon_text, text="Текст", command=self.insert_text)
-        # text_button.pack(side=tk.LEFT)
+        text_button = tk.Button(control_frame, image=self.icon_text, text="Текст", command=self.insert_text)
+        text_button.pack(side=tk.LEFT)
 
         self.canvas_color = tk.Canvas(control_frame, width=20, height=20, bg=self.pen_color)
         self.canvas_color.pack(side=tk.RIGHT, padx=8)
